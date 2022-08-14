@@ -263,6 +263,7 @@ extern const AVInputFormat  ff_mlv_demuxer;
 extern const AVInputFormat  ff_mm_demuxer;
 extern const AVInputFormat  ff_mmf_demuxer;
 extern const AVOutputFormat ff_mmf_muxer;
+extern const AVInputFormat  ff_mo_demuxer;
 extern const AVInputFormat  ff_mods_demuxer;
 extern const AVInputFormat  ff_moflex_demuxer;
 extern const AVInputFormat  ff_mov_demuxer;
