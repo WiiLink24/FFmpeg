@@ -23,35 +23,7 @@
 
 #include "avformat.h"
 #include "internal.h"
-
-#define MO_TAG MKTAG('M', 'O', 'C', '5')
-
-#define FORMAT_MARKER(a,b) ((a) | ((b) << 8))
-
-// TODO: can this become a better formatted enum?
-// What C specification are we using?
-
-// Metadata types
-#define FORMAT_LENGTH           FORMAT_MARKER('T', 'L')
-#define FORMAT_VIDEO            FORMAT_MARKER('V', '2')
-#define FORMAT_RSA              FORMAT_MARKER('p', 'c')
-
-// Unknown
-#define FORMAT_UNKNOWN_AUDIO    FORMAT_MARKER('P', 0xc6)
-
-// Audio types
-#define FORMAT_FASTAUDIO        FORMAT_MARKER('A', '2')
-#define FORMAT_FASTAUDIO_STEREO FORMAT_MARKER('A', '3')
-#define FORMAT_PCM              FORMAT_MARKER('A', 'P')
-#define FORMAT_ADPCM            FORMAT_MARKER('A', '8')
-#define FORMAT_ADPCM_STEREO     FORMAT_MARKER('A', '9')
-#define FORMAT_MULTITRACK       FORMAT_MARKER('A', 'M')
-#define FORMAT_VORBIS           FORMAT_MARKER('A', 'V')
-
-// Video metadata
-#define FORMAT_KEYINDEX         FORMAT_MARKER('K', 'I')
-#define FORMAT_POSSIBLY_CAPTIONS  FORMAT_MARKER('c', 'c')
-#define FORMAT_HEADER_DONE      FORMAT_MARKER('H', 'E')
+#include "mo.h"
 
 typedef struct MoDemuxContext {
     int handle_audio_packet;
