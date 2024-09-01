@@ -899,7 +899,7 @@ static int get_nb_samples(AVCodecContext *avctx, GetByteContext *gb,
         case AV_CODEC_ID_ADPCM_IMA_DAT4:
         case AV_CODEC_ID_ADPCM_IMA_MOFLEX:
         case AV_CODEC_ID_ADPCM_IMA_MOBICLIP_WII:
-        case AV_CODEC_ID_ADPCM_IMA_ISS:     header_size = 4;      break;
+        case AV_CODEC_ID_ADPCM_IMA_ISS:     header_size = 4 * ch;      break;
         case AV_CODEC_ID_ADPCM_IMA_SMJPEG:  header_size = 4 * ch;      break;
     }
     if (header_size > 0)
