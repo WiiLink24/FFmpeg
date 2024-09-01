@@ -336,6 +336,7 @@ static av_cold int adpcm_decode_init(AVCodecContext * avctx)
     case AV_CODEC_ID_ADPCM_MTAF:
     case AV_CODEC_ID_ADPCM_ARGO:
     case AV_CODEC_ID_ADPCM_IMA_MOFLEX:
+    case AV_CODEC_ID_ADPCM_IMA_MOBICLIP_WII:
         avctx->sample_fmt = AV_SAMPLE_FMT_S16P;
         break;
     case AV_CODEC_ID_ADPCM_IMA_WS:
@@ -897,7 +898,8 @@ static int get_nb_samples(AVCodecContext *avctx, GetByteContext *gb,
         case AV_CODEC_ID_ADPCM_IMA_ACORN:
         case AV_CODEC_ID_ADPCM_IMA_DAT4:
         case AV_CODEC_ID_ADPCM_IMA_MOFLEX:
-        case AV_CODEC_ID_ADPCM_IMA_ISS:     header_size = 4 * ch;      break;
+        case AV_CODEC_ID_ADPCM_IMA_MOBICLIP_WII:
+        case AV_CODEC_ID_ADPCM_IMA_ISS:     header_size = 4;      break;
         case AV_CODEC_ID_ADPCM_IMA_SMJPEG:  header_size = 4 * ch;      break;
     }
     if (header_size > 0)
@@ -1440,6 +1442,27 @@ static int adpcm_decode_frame(AVCodecContext *avctx, AVFrame *frame,
                     *samples++ = adpcm_ima_expand_nibble(&c->status[channel], v >> 4  , 3);
                 }
             }
+        }
+        ) /* End of CASE */
+    CASE(ADPCM_IMA_MOBICLIP_WII,
+        for (int subframe = 0; subframe < ceil(buf_size / (channels * 132)); subframe++) {
+          for (int channel = 0; channel < channels; channel++) {
+            ADPCMChannelStatus *cs = &c->status[channel];
+            cs->step_index = sign_extend(bytestream2_get_le16u(&gb), 16);
+            cs->predictor  = sign_extend(bytestream2_get_le16u(&gb), 16);
+            if (cs->step_index > 88u){
+              av_log(avctx, AV_LOG_ERROR, "ERROR: step_index[%d] = %i\n",
+                     channel, cs->step_index);
+              return AVERROR_INVALIDDATA;
+            }
+
+            samples = samples_p[channel] + 256 * subframe;
+            for (int n = 0; n < 256; n += 2) {
+              int v = bytestream2_get_byteu(&gb);
+              *samples++ = adpcm_ima_expand_nibble(&c->status[channel], v & 0x0F, 3);
+              *samples++ = adpcm_ima_expand_nibble(&c->status[channel], v >> 4, 3);
+            }
+          }
         }
         ) /* End of CASE */
     CASE(ADPCM_IMA_DAT4,
@@ -2331,6 +2354,7 @@ ADPCM_DECODER(ADPCM_IMA_EA_EACS, sample_fmts_s16,  adpcm_ima_ea_eacs, "ADPCM IMA
 ADPCM_DECODER(ADPCM_IMA_EA_SEAD, sample_fmts_s16,  adpcm_ima_ea_sead, "ADPCM IMA Electronic Arts SEAD")
 ADPCM_DECODER(ADPCM_IMA_ISS,     sample_fmts_s16,  adpcm_ima_iss,     "ADPCM IMA Funcom ISS")
 ADPCM_DECODER(ADPCM_IMA_MOFLEX,  sample_fmts_s16p, adpcm_ima_moflex,  "ADPCM IMA MobiClip MOFLEX")
+ADPCM_DECODER(ADPCM_IMA_MOBICLIP_WII,  sample_fmts_s16p, adpcm_ima_mobiclip_wii,  "ADPCM IMA MobiClip Wii")
 ADPCM_DECODER(ADPCM_IMA_MTF,     sample_fmts_s16,  adpcm_ima_mtf,     "ADPCM IMA Capcom's MT Framework")
 ADPCM_DECODER(ADPCM_IMA_OKI,     sample_fmts_s16,  adpcm_ima_oki,     "ADPCM IMA Dialogic OKI")
 ADPCM_DECODER(ADPCM_IMA_QT,      sample_fmts_s16p, adpcm_ima_qt,      "ADPCM IMA QuickTime")

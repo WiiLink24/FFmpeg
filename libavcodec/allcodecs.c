@@ -659,6 +659,7 @@ extern const FFCodec ff_adpcm_ima_ea_eacs_decoder;
 extern const FFCodec ff_adpcm_ima_ea_sead_decoder;
 extern const FFCodec ff_adpcm_ima_iss_decoder;
 extern const FFCodec ff_adpcm_ima_moflex_decoder;
+extern const FFCodec ff_adpcm_ima_mobiclip_wii_decoder;
 extern const FFCodec ff_adpcm_ima_mtf_decoder;
 extern const FFCodec ff_adpcm_ima_oki_decoder;
 extern const FFCodec ff_adpcm_ima_qt_encoder;

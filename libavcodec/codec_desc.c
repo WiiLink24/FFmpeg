@@ -2514,6 +2514,13 @@ static const AVCodecDescriptor codec_descriptors[] = {
         .props     = AV_CODEC_PROP_INTRA_ONLY | AV_CODEC_PROP_LOSSY,
     },
     {
+        .id        = AV_CODEC_ID_ADPCM_IMA_MOBICLIP_WII,
+        .type      = AVMEDIA_TYPE_AUDIO,
+        .name      = "adpcm_ima_mobiclip_wii",
+        .long_name = NULL_IF_CONFIG_SMALL("ADPCM IMA MobiClip Wii"),
+        .props     = AV_CODEC_PROP_INTRA_ONLY | AV_CODEC_PROP_LOSSY,
+    },
+    {
         .id        = AV_CODEC_ID_ADPCM_IMA_ACORN,
         .type      = AVMEDIA_TYPE_AUDIO,
         .name      = "adpcm_ima_acorn",

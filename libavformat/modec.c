@@ -28,7 +28,6 @@
 typedef struct MoDemuxContext {
     int handle_audio_packet;
     uint32_t audio_size;
-    uint32_t unknown_size;
     int current_frame;
     int* keyframes;
 } MoDemuxContext;
@@ -72,11 +71,11 @@ static int mo_handle_audio(AVStream *ast, uint16_t marker, AVIOContext* pb) {
         ast->codecpar->ch_layout = (AVChannelLayout)AV_CHANNEL_LAYOUT_STEREO;
         break;
     case FORMAT_ADPCM:
-        ast->codecpar->codec_id = AV_CODEC_ID_ADPCM_IMA_MOFLEX;
+        ast->codecpar->codec_id = AV_CODEC_ID_ADPCM_IMA_MOBICLIP_WII;
         ast->codecpar->ch_layout = (AVChannelLayout)AV_CHANNEL_LAYOUT_MONO;
         break;
     case FORMAT_ADPCM_STEREO:
-        ast->codecpar->codec_id = AV_CODEC_ID_ADPCM_IMA_MOFLEX;
+        ast->codecpar->codec_id = AV_CODEC_ID_ADPCM_IMA_MOBICLIP_WII;
         ast->codecpar->ch_layout = (AVChannelLayout)AV_CHANNEL_LAYOUT_STEREO;
         break;
     default:
@@ -220,9 +219,6 @@ static int mo_read_packet(AVFormatContext *s, AVPacket *pkt)
             return ret;
         }
 
-        // Skip over the following data.
-        avio_skip(pb, mo->unknown_size);
-
         // Stream 1 is always audio.
         // TODO: adjust for multistream, if applicable
         pkt->stream_index = 1;
@@ -233,12 +229,10 @@ static int mo_read_packet(AVFormatContext *s, AVPacket *pkt)
         uint32_t video_size = avio_rl32(pb);
         uint32_t audio_size = chunk_size - video_size - 8;
 
-        // TODO: what is this?
         uint32_t pos = avio_tell(pb) + video_size + audio_size;
-        uint32_t unknown_size = (pos + 4 - (pos % 4)) - pos;
+        uint32_t audio_padding = (pos + 4 - (pos % 4)) - pos;
 
-        mo->audio_size = audio_size;
-        mo->unknown_size = unknown_size;
+        mo->audio_size = audio_size + audio_padding;
 
         ret = av_get_packet(pb, pkt, video_size);
         if (ret < 0) {
