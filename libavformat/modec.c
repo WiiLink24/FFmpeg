@@ -29,6 +29,8 @@ typedef struct MoDemuxContext {
     int handle_audio_packet;
     uint32_t audio_size;
     uint32_t unknown_size;
+    int current_frame;
+    int* keyframes;
 } MoDemuxContext;
 
 static int mo_probe(const AVProbeData *p)
@@ -39,7 +41,8 @@ static int mo_probe(const AVProbeData *p)
         return 0;
     if (AV_RB16(p->buf + 8) != FORMAT_LENGTH) // Typically first
         return 0;
-    return AVPROBE_SCORE_EXTENSION + 10;
+
+    return AVPROBE_SCORE_MAX;
 }
 
 static int mo_handle_audio(AVStream *ast, uint16_t marker, AVIOContext* pb) {
@@ -86,6 +89,7 @@ static int mo_handle_audio(AVStream *ast, uint16_t marker, AVIOContext* pb) {
 
 static int mo_read_header(AVFormatContext *s)
 {
+    MoDemuxContext *mo = s->priv_data;
     AVIOContext *pb = s->pb;
     AVRational fps;
 
@@ -174,8 +178,14 @@ static int mo_read_header(AVFormatContext *s)
             // TODO: This is something horrifying. Why?
             return AVERROR_PATCHWELCOME;
         case FORMAT_KEYINDEX:
-            // TODO: We may need keyframe data as part of FFmpeg.
-            avio_skip(pb, format_length);
+            mo->keyframes = av_malloc(frame_count+1);
+
+            for (int i = 0; i < format_length/8; ++i) {
+              avio_skip(pb, 4);
+              uint32_t frame = avio_rl32(pb);
+
+              mo->keyframes[frame] ^= 1;
+            }
             break;
         case FORMAT_HEADER_DONE:
             // We should be finished!
@@ -237,7 +247,12 @@ static int mo_read_packet(AVFormatContext *s, AVPacket *pkt)
 
         // Stream 0 is always video.
         pkt->stream_index = 0;
+
+        if (mo->keyframes[mo->current_frame])
+          pkt->flags |= AV_PKT_FLAG_KEY;
+
         mo->handle_audio_packet = 1;
+        mo->current_frame += 1;
     }
 
     if (avio_feof(pb))
